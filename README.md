@@ -2,6 +2,8 @@
 
 **Tailoresume** is a web application designed to help users create, manage, and tailor personalized resumes to specific job descriptions. It leverages LLMs to assist with content generation and ATS (Applicant Tracking System) optimization.
 
+A webapp to help create fitting resumes for whatever job you've in mind, and maintain a database of your registered skills, education, experience, and more.
+
 ## Tech Stack
 
 - **Frontend:** React (v18+), TypeScript, Tailwind CSS
