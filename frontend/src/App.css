@@ -1,0 +1,43 @@
+/* frontend/src/App.css */
+
+/* Tailwind CSS Base Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Styles */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #ffffff; /* Default light mode background */
+  color: #1a202c; /* Default light mode text */
+}
+
+/* Dark mode overrides (managed by ThemeContext and Tailwind dark: variants primarily) */
+/* You can add specific global dark mode styles here if absolutely necessary */
+body.dark {
+  background-color: #1a202c; /* Default dark mode background */
+  color: #e2e8f0; /* Default dark mode text */
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* App container to ensure content doesn't go under a fixed navbar if you have one */
+/* .app-container {
+  padding-top: 4rem; /* Adjust this based on your Navbar height * /
+} */
+
+/* Basic link styling */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Add any other global styles you need below */

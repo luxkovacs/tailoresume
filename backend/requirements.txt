@@ -1,0 +1,17 @@
+fastapi
+pydantic
+sqlalchemy
+python-jose
+passlib
+requests
+openai
+pydantic[email]
+psycopg2-binary
+sqlalchemy
+uvicorn
+fastapi
+python-dotenv
+python-multipart
+alembic
+passlib[bcrypt]
+firebase-admin

@@ -1,0 +1,13 @@
+/* frontend/src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can add other global styles or overrides here if needed */
+body {
+  font-family: 'DM Sans', sans-serif; /* Default body font if not overridden by Tailwind utility classes */
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', sans-serif; /* Default header font if not overridden by Tailwind utility classes */
+}
