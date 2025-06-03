@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { jobAnalysisService, resumesService, skillsService, workExperiencesService, educationsService } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import AntiHallucinationResume from '../components/AntiHallucinationResume';
+import { Brain, FileText } from 'lucide-react';
 
 interface Skill { id: number; name: string; level: string; category?: string; }
 interface WorkExperience { id: number; title: string; company: string; start_date: string; end_date?: string; description?: string; }
@@ -8,13 +10,12 @@ interface Education { id: number; degree: string; institution: string; start_dat
 
 const ResumeGenPage: React.FC = () => {
   const { currentUser } = useAuth();
+  const [mode, setMode] = useState<'traditional' | 'anti-hallucination'>('anti-hallucination');
   const [jobDescription, setJobDescription] = useState('');
-  const [analysis, setAnalysis] = useState<{ matched_skills: Skill[]; missing_skills: string[] } | null>(null);
-  const [selectedSkillIds, setSelectedSkillIds] = useState<number[]>([]);
-  const [selectedExperienceIds, setSelectedExperienceIds] = useState<number[]>([]);
-  const [selectedEducationIds, setSelectedEducationIds] = useState<number[]>([]);
-  // Skills state is used to store user's skills loaded from the API
-  // and possibly used for future enhancement to show all available skills
+  const [analysis, setAnalysis] = useState<{ matched_skills: Skill[]; missing_skills: string[] } | null>(null);  const [selectedSkillIds, setSelectedSkillIds] = useState<number[]>([]);
+  const [selectedExperienceIds, setSelectedExperienceIds] = useState<number[]>([]);  const [selectedEducationIds, setSelectedEducationIds] = useState<number[]>([]);
+  // Skills loaded from API - used for future enhancements and validation
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [skills, setSkills] = useState<Skill[]>([]);
   const [experiences, setExperiences] = useState<WorkExperience[]>([]);
   const [educations, setEducations] = useState<Education[]>([]);
@@ -201,23 +202,70 @@ const ResumeGenPage: React.FC = () => {
   const toggleEducation = (id: number) => {
     setSelectedEducationIds(ids => ids.includes(id) ? ids.filter(i => i !== id) : [...ids, id]);
   };
+  const handleUnauthorized = () => {
+    // Handle unauthorized access - could redirect to login or show message
+    setError('Session expired. Please log in again.');
+  };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Generate Tailored Resume</h1>
-      
-      {!currentUser ? (
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
-          Please log in to generate a resume.
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-4">Generate Tailored Resume</h1>
+          {/* Mode Selection */}
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-6">
+          <h2 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">Choose Generation Mode</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={() => setMode('anti-hallucination')}
+              className={`p-4 border-2 rounded-lg text-left transition-all ${
+                mode === 'anti-hallucination'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <Brain className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <h3 className="font-semibold text-blue-600 dark:text-blue-400">Anti-Hallucination Mode</h3>
+                <span className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs px-2 py-1 rounded-full">Recommended</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Uses ONLY your verified databank information. Zero fabrication guaranteed. 
+                Identifies gaps and suggests databank improvements.
+              </p>
+            </button>
+            
+            <button
+              onClick={() => setMode('traditional')}
+              className={`p-4 border-2 rounded-lg text-left transition-all ${
+                mode === 'traditional'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+              }`}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <FileText className="w-6 h-6 text-gray-600 dark:text-gray-300" />
+                <h3 className="font-semibold text-gray-600 dark:text-gray-300">Traditional Mode</h3>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Classic resume generation with manual skill and experience selection. 
+                May include AI-enhanced content.
+              </p>
+            </button>
+          </div>
         </div>
-      ) : dataLoading ? (
-        <div className="text-center py-8">Loading your profile data...</div>
-      ) : (
-        <>
-          <div className="mb-6">
-            <label className="block text-lg font-medium mb-2">Paste Job Description</label>
+      </div>
+        {!currentUser ? (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 px-4 py-3 rounded mb-4">
+          Please log in to generate a resume.
+        </div>      ) : dataLoading && mode === 'traditional' ? (
+        <div className="text-center py-8 text-gray-600 dark:text-gray-300">Loading your profile data...</div>
+      ) : mode === 'anti-hallucination' ? (
+        <AntiHallucinationResume onUnauthorized={handleUnauthorized} />
+      ) : (        <>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Paste Job Description</h2>
             <textarea
-              className="w-full min-h-[120px] p-3 border rounded-md"
+              className="w-full min-h-[120px] p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 dark:placeholder-gray-400"
               value={jobDescription}
               onChange={e => setJobDescription(e.target.value)}
               placeholder="Paste the job description here..."
@@ -229,91 +277,94 @@ const ResumeGenPage: React.FC = () => {
             >
               {loading ? 'Analyzing...' : 'Analyze Job Description'}
             </button>
-          </div>
-
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              {error}
+          </div>          {error && (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3 mb-6">
+              <span className="text-red-700 dark:text-red-300">{error}</span>
             </div>
-          )}
-
-          {analysis && (
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2">Skill Match</h2>
+          )}          {analysis && (
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+              <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Skill Match</h2>
               
-              <div className="mb-2">
-                <span className="font-medium">Matched Skills:</span>
-                <div className="flex flex-wrap gap-2 mt-1">
+              <div className="mb-4">
+                <span className="font-medium text-gray-900 dark:text-gray-100">Matched Skills:</span>
+                <div className="flex flex-wrap gap-2 mt-2">
                   {Array.isArray(analysis.matched_skills) && analysis.matched_skills.map(skill => (
                     typeof skill === 'object' && skill !== null && 'id' in skill && 'name' in skill ? (
                       <button
                         key={skill.id}
                         onClick={() => toggleSkill(skill.id)}
-                        className={`px-3 py-1 rounded-full border ${selectedSkillIds.includes(skill.id) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : 'bg-gray-200 text-gray-900'}`}
+                        className={`px-3 py-1 rounded-full border transition-colors ${selectedSkillIds.includes(skill.id) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600'}`}
                       >
                         {typeof skill.name === 'string' ? skill.name : `Skill ${skill.id}`}
                       </button>
                     ) : null
                   ))}
-                  
-                  {!Array.isArray(analysis.matched_skills) || analysis.matched_skills.length === 0 && (
-                    <div className="text-gray-500">No matching skills found.</div>
+                    {(!Array.isArray(analysis.matched_skills) || analysis.matched_skills.length === 0) && (
+                    <div className="text-gray-500 dark:text-gray-400">No matching skills found.</div>
                   )}
                 </div>
               </div>
               
               {Array.isArray(analysis.missing_skills) && analysis.missing_skills.length > 0 && (
-                <div className="mb-2">
-                  <span className="font-medium">Missing Skills:</span>
-                  <div className="flex flex-wrap gap-2 mt-1">
+                <div className="mb-4">
+                  <span className="font-medium text-gray-900 dark:text-gray-100">Missing Skills:</span>
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {analysis.missing_skills.map((skill, index) => (
-                      <span key={index} className="px-3 py-1 rounded-full bg-yellow-200 text-yellow-900">
+                      <span key={index} className="px-3 py-1 rounded-full bg-yellow-200 dark:bg-yellow-900/30 text-yellow-900 dark:text-yellow-300">
                         {typeof skill === 'string' ? skill : JSON.stringify(skill)}
                       </span>
                     ))}
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                     Add missing skills to your profile if you have them!
                   </div>
-                </div>
-              )}
+                </div>              )}
             </div>
-          )}      {/* Experience selection */}
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">Select Work Experience</h2>
+          )}          {/* Experience selection */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Select Work Experience</h2>
             <div className="flex flex-wrap gap-2">
               {Array.isArray(experiences) && experiences.map(exp => (
                 <button
                   key={exp.id}
                   onClick={() => toggleExperience(exp.id)}
-                  className={`px-3 py-1 rounded-full border ${selectedExperienceIds.includes(exp.id) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200'}`}
+                  className={`px-3 py-1 rounded-full border transition-colors ${selectedExperienceIds.includes(exp.id) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600'}`}
                 >
                   {exp.title} @ {exp.company}
                 </button>
-              ))}
+              ))}              {(!Array.isArray(experiences) || experiences.length === 0) && (
+                <div className="text-gray-500 dark:text-gray-400">No work experiences found. Add some to your profile first.</div>
+              )}
             </div>
-          </div>      {/* Education selection */}
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">Select Education</h2>
+          </div>
+
+          {/* Education selection */}
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Select Education</h2>
             <div className="flex flex-wrap gap-2">
               {Array.isArray(educations) && educations.map(edu => (
                 <button
                   key={edu.id}
                   onClick={() => toggleEducation(edu.id)}
-                  className={`px-3 py-1 rounded-full border ${selectedEducationIds.includes(edu.id) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-200'}`}
+                  className={`px-3 py-1 rounded-full border transition-colors ${selectedEducationIds.includes(edu.id) ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-300 dark:hover:bg-gray-600'}`}
                 >
                   {edu.degree} @ {edu.institution}
-                </button>
-              ))}
+                </button>              ))}
+              {(!Array.isArray(educations) || educations.length === 0) && (
+                <div className="text-gray-500 dark:text-gray-400">No education records found. Add some to your profile first.</div>
+              )}
             </div>
           </div>
+
           <button
             onClick={handleGenerateResume}
             disabled={loading || !selectedSkillIds.length || !selectedExperienceIds.length}
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-md shadow hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 text-lg font-semibold"
           >
-            Generate Resume
-          </button>      {/* ATS Score and Download */}
+            {loading ? 'Generating Resume...' : 'Generate Resume'}
+          </button>
+
+          {/* ATS Score and Download */}
           {atsScore !== null && (
             <div className="mt-8 p-4 bg-white dark:bg-gray-800 rounded-lg shadow flex items-center gap-4">
               <div>

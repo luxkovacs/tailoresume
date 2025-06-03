@@ -33,6 +33,86 @@ export interface Skill extends SkillBase {
   user_id: number;
 }
 
+// Anti-Hallucination types
+export interface DatabankCoverage {
+  coverage_summary: {
+    skills: {
+      covered: number;
+      required: number;
+      percentage: number;
+      missing_required: string[];
+      missing_preferred: string[];
+    };
+    experience: {
+      meets_requirements: boolean;
+      user_years: number;
+      required_years: number;
+      gap_analysis: string;
+    };
+    education: {
+      meets_requirements: boolean;
+      user_education: string[];
+      required_education: string[];
+      gaps: string[];
+    };
+    certifications: {
+      relevant_count: number;
+      preferred_count: number;
+      missing: string[];
+    };
+  };
+  critical_gaps: string[];
+  transferable_skills: Array<{
+    user_skill: string;
+    target_skill: string;
+    transferability_strength: string;
+    reasoning: string;
+  }>;
+  databank_utilization_percentage: number;
+}
+
+export interface GapRecommendation {
+  category: string;
+  item_type: string;
+  suggestion: string;
+  priority: string;
+  reasoning: string;
+}
+
+export interface DatabankValidationRequest {
+  job_description: string;
+}
+
+export interface DatabankEnhancementRequest {
+  job_description: string;
+}
+
+export interface DatabankEnhancementResponse {
+  recommendations: GapRecommendation[];
+  priority_order: string[];
+  estimated_improvement: {
+    skills_coverage: number;
+    overall_match: number;
+  };
+}
+
+export interface AntiHallucinationResumeRequest {
+  job_description: string;
+  max_databank_utilization?: boolean;
+}
+
+export interface AntiHallucinationResumeResponse {
+  resume_content: any;
+  databank_utilization_report: {
+    content_sources?: string[];
+    utilization_percentage?: number;
+    unused_databank_content?: string[];
+    identified_gaps?: string[];
+  };
+  coverage_analysis: DatabankCoverage;
+  enhancement_suggestions: GapRecommendation[];
+}
+
 // Define TypeScript types for Work Experience based on backend schemas
 export interface WorkExperienceBase {
   company: string;
@@ -353,6 +433,52 @@ export const languagesService = new ApiService('/api/languages/');
 export const resumesService = new ApiService('/api/resumes/');
 export const apiKeysService = new ApiService('/api/api-keys/');
 export const jobAnalysisService = new ApiService('/api/job-analysis/');
+
+// Specialized Anti-Hallucination Service
+class AntiHallucinationService {
+  private baseEndpoint = '/api/job-analysis';
+
+  async validateDatabankCoverage(request: DatabankValidationRequest): Promise<DatabankCoverage> {
+    try {
+      const response = await apiClient.post<DatabankCoverage>(
+        `${this.baseEndpoint}/validate-databank-coverage`,
+        request
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error validating databank coverage:', error);
+      throw error;
+    }
+  }
+
+  async suggestDatabankEnhancements(request: DatabankEnhancementRequest): Promise<DatabankEnhancementResponse> {
+    try {
+      const response = await apiClient.post<DatabankEnhancementResponse>(
+        `${this.baseEndpoint}/suggest-databank-enhancements`,
+        request
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error suggesting databank enhancements:', error);
+      throw error;
+    }
+  }
+
+  async generateAntiHallucinationResume(request: AntiHallucinationResumeRequest): Promise<AntiHallucinationResumeResponse> {
+    try {
+      const response = await apiClient.post<AntiHallucinationResumeResponse>(
+        `${this.baseEndpoint}/generate-anti-hallucination-resume`,
+        request
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error generating anti-hallucination resume:', error);
+      throw error;
+    }
+  }
+}
+
+export const antiHallucinationService = new AntiHallucinationService();
 
 // Export the API client for direct use
 export default apiClient;
